@@ -15,7 +15,12 @@ const REFRESH_EXP = process.env.REFRESH_TOKEN_EXPIRES_IN ?? "7d";
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
-export function signAccessToken(payload: { userId: string }): string {
+export type AccessTokenPayload = {
+	userId: string;
+	role: "user" | "admin";
+};
+
+export function signAccessToken(payload: AccessTokenPayload): string {
 	if (!ACCESS_SECRET) {
 		throw new Error("JWT_ACCESS_SECRET is not set");
 	}

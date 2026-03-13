@@ -26,6 +26,12 @@ const userSchema = new Schema(
 			type: String,
 			required: false,
 		},
+		role: {
+			type: String,
+			enum: ["user", "admin"],
+			default: "user",
+			required: true,
+		},
 		refreshTokenHash: {
 			type: String,
 			required: false,

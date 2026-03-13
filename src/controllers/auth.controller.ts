@@ -74,7 +74,7 @@ export const register: RequestHandler = async (req, res, next) => {
 		});
 
 		const userId = (user._id as Types.ObjectId).toString();
-		const accessToken = signAccessToken({ userId });
+		const accessToken = signAccessToken({ userId, role: user.role });
 		const refreshToken = signRefreshToken({ userId });
 		const refreshTokenHash = await bcrypt.hash(refreshToken, SALT_ROUNDS);
 
@@ -94,6 +94,7 @@ export const register: RequestHandler = async (req, res, next) => {
 					email: user.email,
 					name: user.name ?? null,
 					phone: user.phone,
+					role: user.role,
 				},
 				accessToken,
 			},
@@ -138,7 +139,7 @@ export const login: RequestHandler = async (req, res, next) => {
 		}
 
 		const userId = (user._id as Types.ObjectId).toString();
-		const accessToken = signAccessToken({ userId });
+		const accessToken = signAccessToken({ userId, role: user.role });
 		const refreshToken = signRefreshToken({ userId });
 		const refreshTokenHash = await bcrypt.hash(refreshToken, SALT_ROUNDS);
 
@@ -158,6 +159,7 @@ export const login: RequestHandler = async (req, res, next) => {
 					email: user.email,
 					name: user.name ?? null,
 					phone: user.phone,
+					role: user.role,
 				},
 				accessToken,
 			},
@@ -202,7 +204,7 @@ export const refresh: RequestHandler = async (req, res, next) => {
 		}
 
 		const userId = (user._id as Types.ObjectId).toString();
-		const accessToken = signAccessToken({ userId });
+		const accessToken = signAccessToken({ userId, role: user.role });
 
 		// Optional rotation: issue new refresh, update cookie and DB
 		const newRefreshToken = signRefreshToken({ userId });
@@ -215,7 +217,16 @@ export const refresh: RequestHandler = async (req, res, next) => {
 
 		res.status(200).json({
 			success: true,
-			data: { accessToken },
+			data: {
+				user: {
+					id: userId,
+					email: user.email,
+					name: user.name ?? null,
+					phone: user.phone,
+					role: user.role,
+				},
+				accessToken,
+			},
 		});
 	} catch (error) {
 		next(error);
@@ -285,6 +296,7 @@ export const me: RequestHandler = async (req, res, next) => {
 					email: user.email,
 					name: user.name ?? null,
 					phone: user.phone,
+					role: user.role,
 				},
 			},
 		});

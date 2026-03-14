@@ -144,7 +144,7 @@ export const createOrder: RequestHandler = async (req, res, next) => {
 		const userId = authReq.user?.userId;
 
 		const order = await OrderModel.create({
-			user: userId ? new Types.ObjectId(userId) : undefined,
+			user: userId ? new Types.ObjectId(userId) : null,
 			restaurant: category,
 			customer: {
 				name: customer.name,

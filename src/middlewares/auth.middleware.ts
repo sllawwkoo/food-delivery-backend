@@ -51,3 +51,39 @@ export function protect(
 		});
 	}
 }
+
+export function optionalAuth(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): void {
+
+  const authHeader = req.headers.authorization;
+  const token =
+    authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
+
+  if (!token) {
+    return next();
+  }
+
+  if (!ACCESS_SECRET) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, ACCESS_SECRET);
+
+    if (
+      typeof decoded === "object" &&
+      decoded !== null &&
+      typeof (decoded as { userId?: unknown }).userId === "string"
+    ) {
+      req.user = { userId: (decoded as { userId: string }).userId };
+    }
+
+  } catch {
+    // якщо токен невалідний — просто ігноруємо
+  }
+
+  next();
+}

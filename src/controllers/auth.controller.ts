@@ -304,3 +304,94 @@ export const me: RequestHandler = async (req, res, next) => {
 		next(error);
 	}
 };
+
+export const updateMe: RequestHandler = async (req, res, next) => {
+  try {
+    const authReq = req as AuthRequest;
+    const userId = authReq.user?.userId;
+
+    if (!userId || !Types.ObjectId.isValid(userId)) {
+      const err: AppError = new Error("Unauthorized");
+      err.statusCode = 401;
+      return next(err);
+    }
+
+    const name =
+      typeof req.body.name === "string" ? req.body.name.trim() : undefined;
+
+    const email =
+      typeof req.body.email === "string"
+        ? req.body.email.trim().toLowerCase()
+        : undefined;
+
+    const phone =
+      typeof req.body.phone === "string" ? req.body.phone.trim() : undefined;
+
+      const user = await UserModel.findById(userId).select(
+        "-passwordHash -refreshTokenHash"
+      );
+
+    if (!user) {
+      const err: AppError = new Error("User not found");
+      err.statusCode = 404;
+      return next(err);
+    }
+
+    // перевірка email
+    if (email && email !== user.email) {
+      const existingEmail = await UserModel.findOne({ email });
+
+      if (existingEmail) {
+        const err: AppError = new Error("Email already in use");
+        err.statusCode = 409;
+        return next(err);
+      }
+
+      user.email = email;
+    }
+
+    // перевірка phone
+    if (phone && phone !== user.phone) {
+      if (phone.length < MIN_PHONE_LENGTH) {
+        const err: AppError = new Error(
+          `Phone must be at least ${MIN_PHONE_LENGTH} characters`
+        );
+        err.statusCode = 400;
+        return next(err);
+      }
+
+      const existingPhone = await UserModel.findOne({ phone });
+
+      if (existingPhone) {
+        const err: AppError = new Error("Phone already in use");
+        err.statusCode = 409;
+        return next(err);
+      }
+
+      user.phone = phone;
+    }
+
+    if (name !== undefined) {
+      user.name = name;
+    }
+
+    await user.save();
+
+    const id = (user._id as Types.ObjectId).toString();
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user: {
+          id,
+          email: user.email,
+          name: user.name ?? null,
+          phone: user.phone,
+          role: user.role,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

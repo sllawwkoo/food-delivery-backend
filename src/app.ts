@@ -9,11 +9,20 @@ import { errorMiddleware } from "./middlewares/error.middleware";
 
 export const app = express();
 
+// const corsOptions = {
+// 	origin:
+// 		process.env.CORS_ORIGIN ?? "http://localhost:5173",
+// 	credentials: true,
+// };
+
 const corsOptions = {
-	origin:
-		process.env.CORS_ORIGIN ?? "http://localhost:5173",
-	credentials: true,
+  origin: [
+    "http://localhost:5173",
+    "https://food-delivery-front-app.netlify.app",
+  ],
+  credentials: true,
 };
+
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
